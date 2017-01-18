@@ -1,0 +1,14 @@
+<nav class="navigation">
+  <ul class="navigation__list">
+    {% assign navigation_pages = site.pages | sort: 'navigation_weight' %}
+      {% for page in navigation_pages %}
+      {% if page.navigation_weight %}
+        <li class="navigation__item">
+          <a href="{{ page.url }}" {% if page.url == page.url %}class="active"{% endif %}>
+            {{ page.title }}
+          </a>
+        </li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+</nav>

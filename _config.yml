@@ -1,0 +1,21 @@
+
+title:    'Jekyll Boilerplate'
+subtitle: 'Just some minimal setup'
+
+
+markdown:    kramdown
+highlighter: rouge
+
+
+exclude:
+  - Gemfile
+  - _site
+  - Gemfile.lock
+  - _app
+  - package.json
+  - gulpfile.js
+  - node_modules
+  - .sass-cache
+  - README.md
+  - LICENSE.md
+  - .gitignore
