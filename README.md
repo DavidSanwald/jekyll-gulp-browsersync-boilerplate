@@ -1,3 +1,3 @@
-# Jekyll Starter Theme V2
+# Jekyll boilerplate and gulp configuration
 
 -
