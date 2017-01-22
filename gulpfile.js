@@ -1,30 +1,55 @@
+// *************************************
+//
+//   Gulpfile
+//
+// *************************************
+//
+// Main tasks:
+//   `gulp` ->  compile Sass, build Jekyll, start BrowserSync
+//   `gulp build`
+//   `gulp compile:sass`
+//
+//
+// *************************************
+
+
+
+/**
+ * gulp-load-plugins loads automatically all plugins
+ * in our package.json file, which begin with "gulp"
+ * in an object we can choose.
+ */
+ 
 var gulp = require('gulp');
-var sass = require('gulp-sass');
-var sourcemaps = require('gulp-sourcemaps');
-var autoprefixer = require('gulp-autoprefixer');
-var browserSync   = require('browser-sync').create();
-var run = require('gulp-run');
-var plumber = require('gulp-plumber');
-var runSequence = require('run-sequence');
-var postcss = require('gulp-postcss');
-var lost = require('lost');
-var streamqueue = require('streamqueue');
-var concat = require('gulp-concat');
+var plugins = require('gulp-load-plugins')();
+var browserSync = require('browser-sync').create();
+
+// external paths for modularity
+var paths = require('./_gulp/paths');
 
 
-
-var input_sass = '_app/sass/**/*.scss';
-var input_rouge = '_app/murphy.css';
-var output_sass = '_site/';
+/**
+ * defining obtions, maybe going to separate them into
+ * a new file for improved modularity and a more reusable,
+ * generic gulpfile
+ */
 
 var sassOptions = {
-  errLogToConsole: true,
-  outputStyle: 'expanded'
+    errLogToConsole: true,
+    outputStyle: 'expanded'
 };
 
 var autoprefixerOptions = {
-  browsers: ['last 2 versions', '> 5%', 'Firefox ESR']
+    browsers: ['last 2 versions', '> 5%', 'Firefox ESR']
 };
+
+
+
+// *************************************
+//
+//   Tasks
+//
+// *************************************
 
 
 gulp.task('build:jekyll:watch', ['build:jekyll:local'], function(callback) {
@@ -33,46 +58,36 @@ gulp.task('build:jekyll:watch', ['build:jekyll:local'], function(callback) {
 });
 
 gulp.task('build:jekyll:local', function() {
-  return run('bundle exec jekyll build --config _config.yml').exec();
+    return plugins.run('bundle exec jekyll build --config _config.yml').exec();
 });
 
-
-
-gulp.task('sass', function () {
-  return streamqueue({ objectMode: true },
-    gulp.src(input_sass)
-    .pipe(sourcemaps.init())
-    .pipe(sass(sassOptions).on('error', sass.logError))
-    .pipe(autoprefixer(autoprefixerOptions))
-    .pipe(sourcemaps.write()),
-    gulp.src(input_rouge))
-    .pipe(concat('main.css'))
-    .pipe(browserSync.reload({stream:true}))
-    .pipe(gulp.dest(output_sass))
+gulp.task('compile:sass', function() {
+    return gulp.src(paths.appSassFilesGlob).pipe(plugins.sourcemaps.init())
+    .pipe(plugins.sass(sassOptions).on('error', plugins.sass.logError))
+    .pipe(plugins.autoprefixer(autoprefixerOptions))
+    .pipe(plugins.sourcemaps.write())
+    .pipe(gulp.dest(paths.siteDir))
+    .pipe(gulp.dest('./'))
+    .pipe(browserSync.stream());
 });
 
+gulp.task('serve:jekyll', [
+    'build:jekyll:local', 'compile:sass'
+], function() {
 
-gulp.task('browser-sync', ['sass', 'jekyll-build'], function() {
-    browserSync({
-        server: {
-            baseDir: '_site'
-        }
-    });
-});
+    browserSync.init({server: "_site"});
 
 
-gulp.task('serve', [ 'build:jekyll:local', 'sass'], function() {
-
-    browserSync.init({
-        server: "_site"
-    });
-    gulp.watch("_app/sass/**/*.scss", ['sass']);
+    gulp.watch("_app/sass/**/*.scss", ['compile:sass']);
     gulp.watch(['_config.yml'], ['build:jekyll:watch']);
-    gulp.watch(['**/*.html', '!_site/**/*.*'], ['build:jekyll:watch']);
+    gulp.watch([
+        '**/*.html', '!_site/**/*.*'
+    ], ['build:jekyll:watch']);
     gulp.watch('./**/*.+(md|markdown|MD)', ['build:jekyll:watch']);
-    });
+});
 
 
 
 
-gulp.task('default', ['serve'  /*, possible other tasks... */]);
+gulp.task('default', ['serve:jekyll'
+    ]);

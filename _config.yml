@@ -19,3 +19,4 @@ exclude:
   - README.md
   - LICENSE.md
   - .gitignore
+  - _gulp
